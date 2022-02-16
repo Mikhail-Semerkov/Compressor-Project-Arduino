@@ -17,58 +17,42 @@ enum
     mkBack,
     mkRoot,
     mkOptions,
-    mkInformation,
     mkSetBrightness,
     mkSetDelay,
     mkStart_1,
-    mkStart_2
+    mkStart_2,
+    mkStop,
+    mkExit
 };
 
 sMenuItem menu[] = {
 
-    {mkRoot, mkInformation, "Information", NULL},
     {mkRoot, mkStart_1, "Start 1", NULL},
     {mkRoot, mkStart_2, "Start 2", NULL},
+    {mkRoot, mkStop, "Stop All", NULL},
     {mkRoot, mkOptions, "Options", NULL},
+    {mkRoot, mkExit, "Exit", NULL},
     {mkOptions, mkSetBrightness, "SetBrightness", SetBrightness},
     {mkOptions, mkSetDelay, "SetDelay", SetDelay},
-    {mkOptions, mkBack, "Back", NULL},
-    {mkRoot, mkBack, "Back", NULL}};
+    {mkOptions, mkBack, "Back", NULL}};
 
 uint8_t menuLen = sizeof(menu) / sizeof(sMenuItem);
 
-void setup_lcd()
+void load_lcd()
 {
-    Serial.begin(9600);
     lcd.begin();
     lcd.attachButtons(pinLeft, pinRight, pinEnter, pinBack);
+    lcd.printAt(0, 0, "    Loading     ");
+    lcd.printAt(0, 1, "****************");
+    delay(500);
+    lcd.clear();
 }
 
-void loop_lcd()
+void setting_page_lcd()
 {
-    eButtonsState ButtonsState = lcd.getButtonsState();
 
-    if (selectedMenuItem == mkInformation)
-    {
-        lcd.printAt(0, 0, "INFORMATION " + String(random(0, 1000)));
-        delay(100);
+    ButtonsState = lcd.getButtonsState(); // Обработчик нажатий кнопок
 
-        switch (ButtonsState)
-        {
-        case eLeft: // Нажали влево - уменьшаем значение переменной
-            Serial.println("Left");
-            break;
-        case eRight: // Нажали вправо - увеличиваем значение переменной
-            Serial.println("Right");
-            break;
-        case eButton: // Нажата кнопка Enter
-            Serial.println("Enter");
-            selectedMenuItem = mkBack;
-            break;
-        case eNone: // Нет нажатых кнопок, выходим из функции
-            return;
-        }
-    }
     if (selectedMenuItem == mkStart_1)
     {
         lcd.printAt(0, 0, "START 1 " + String(random(0, 1000)));
@@ -76,17 +60,55 @@ void loop_lcd()
 
         switch (ButtonsState)
         {
-        case eLeft: // Нажали влево - уменьшаем значение переменной
+        case eLeft:
+            Serial.println("Left");
+
+            break;
+        case eRight:
+            Serial.println("Right");
+
+            break;
+        case eButton:
+            Serial.println("Enter");
+
+            selectedMenuItem = mkBack;
+            break;
+        case eNone:
+            return;
+        }
+    }
+    if (selectedMenuItem == mkExit)
+    {
+        String Sost;
+        switch (sost_compressor)
+        {
+        case true:
+            Sost = "RUN";
+            break;
+        case false:
+            Sost = "STOP";
+            break;
+
+        default:
+            break;
+        }
+
+        lcd.printAt(0, 0, "Sost: " + Sost);
+        delay(100);
+
+        switch (ButtonsState)
+        {
+        case eLeft:
             Serial.println("Left");
             break;
-        case eRight: // Нажали вправо - увеличиваем значение переменной
+        case eRight:
             Serial.println("Right");
             break;
-        case eButton: // Нажата кнопка Enter
+        case eButton:
             Serial.println("Enter");
             selectedMenuItem = mkBack;
             break;
-        case eNone: // Нет нажатых кнопок, выходим из функции
+        case eNone:
             return;
         }
     }
@@ -94,4 +116,23 @@ void loop_lcd()
     {
         selectedMenuItem = lcd.showMenu(menu, menuLen, 0);
     }
+}
+
+void setup_lcd()
+{
+    Serial.begin(9600);
+
+    load_lcd();
+}
+
+void loop_lcd()
+{
+    if (millis() - myTimer1 >= 500)
+    {
+        myTimer1 = millis();
+        count_time++;
+        Serial.println(count_time);
+    }
+
+    setting_page_lcd();
 }
