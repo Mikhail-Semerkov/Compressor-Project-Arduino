@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C_Menu_Btns.h>
 LiquidCrystal_I2C_Menu_Btns lcd(0x27, 16, 2);
